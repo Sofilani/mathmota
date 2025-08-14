@@ -152,46 +152,50 @@
 <script>
   // Perguntas do 3º ano (soma e subtração)
 const perguntas3 = [
-  { q: "5 + 7 = ?", options: ["10", "12", "13", "14"], correct: 1 },
-  { q: "15 - 8 = ?", options: ["6", "7", "8", "5"], correct: 1 },
-  { q: "9 + 4 = ?", options: ["12", "14", "13", "15"], correct: 2 },
-  { q: "18 - 6 = ?", options: ["12", "11", "10", "13"], correct: 0 },
-  { q: "7 + 7 = ?", options: ["12", "15", "13", "14"], correct: 3 },
-  { q: "20 - 9 = ?", options: ["10", "12", "11", "9"], correct: 2 },
-  { q: "6 + 8 = ?", options: ["12", "14", "13", "15"], correct: 1 }
+  { q: "5 + 7 = ?", options: ["10", "12", "13", "14"], correct: 1, category: "Soma"},
+  { q: "15 - 8 = ?", options: ["6", "7", "8", "5"], correct: 1, category: "Subtração" },
+  { q: "9 + 4 = ?", options: ["12", "14", "13", "15"], correct: 2, category: "Soma" },
+  { q: "18 - 6 = ?", options: ["12", "11", "10", "13"], correct: 0, category: "Subtração" },
+  { q: "7 + 7 = ?", options: ["12", "15", "13", "14"], correct: 3, category: "Soma" },
+  { q: "20 - 9 = ?", options: ["10", "12", "11", "9"], correct: 2, category: "Subtração" },
+  { q: "6 + 8 = ?", options: ["12", "14", "13", "15"], correct: 1, category: "Soma" },
+  { q: "20 - 9 = ?", options: ["10", "12", "11", "9"], correct: 2, category: "Subtração" }
 ];
 
 // Perguntas do 4º ano (multiplicação e divisão)
 const perguntas4 = [
-  { q: "6 x 7 = ?", options: ["42", "36", "40", "48"], correct: 0 },
-  { q: "56 ÷ 8 = ?", options: ["6", "8", "7", "9"], correct: 2 },
-  { q: "9 x 5 = ?", options: ["45", "40", "35", "50"], correct: 0 },
-  { q: "72 ÷ 9 = ?", options: ["6", "9", "8", "7"], correct: 2 },
-  { q: "8 x 8 = ?", options: ["64", "72", "56", "60"], correct: 0 },
-  { q: "63 ÷ 7 = ?", options: ["8", "9", "7", "10"], correct: 1 },
-  { q: "12 x 4 = ?", options: ["48", "36", "40", "44"], correct: 0 }
+  { q: "6 x 7 = ?", options: ["42", "36", "40", "48"], correct: 0, category: "Multiplicação" },
+  { q: "56 ÷ 8 = ?", options: ["6", "8", "7", "9"], correct: 2, category: "Divisão" },
+  { q: "9 x 5 = ?", options: ["45", "40", "35", "50"], correct: 0, category: "Multiplicação" },
+  { q: "72 ÷ 9 = ?", options: ["6", "9", "8", "7"], correct: 2, category: "Divisão" },
+  { q: "8 x 8 = ?", options: ["64", "72", "56", "60"], correct: 0, category: "Multiplicação" },
+  { q: "63 ÷ 7 = ?", options: ["8", "9", "7", "10"], correct: 1, category: "Divisão" },
+  { q: "12 x 4 = ?", options: ["48", "36", "40", "44"], correct: 0, category: "Multiplicação" },
+  { q: "63 ÷ 7 = ?", options: ["8", "9", "7", "10"], correct: 1, category: "Divisão" }
 ];
 
 // Perguntas do 5º ano (problemas mais complexos)
 const perguntas5 = [
-  { q: "João comprou 3 cadernos por R$12 cada. Quanto gastou?", options: ["R$36", "R$30", "R$24", "R$40"], correct: 0 },
-  { q: "Um ônibus transporta 45 pessoas. Quantas pessoas em 6 ônibus?", options: ["270", "300", "280", "250"], correct: 0 },
-  { q: "Se uma pizza custa R$48 e é dividida em 8 fatias, quanto custa cada fatia?", options: ["R$6", "R$8", "R$5", "R$7"], correct: 0 },
-  { q: "Um aluno leu 120 páginas em 4 dias. Quantas páginas por dia?", options: ["25", "30", "40", "35"], correct: 1 },
-  { q: "Se 5 caixas têm 125 balas no total, quantas balas em cada caixa?", options: ["30", "20", "25", "15"], correct: 2 },
-  { q: "Um produto de R$200 teve desconto de R$50. Quanto custa agora?", options: ["R$150", "R$160", "R$140", "R$130"], correct: 0 },
-  { q: "Qual o resultado de 120 ÷ 5?", options: ["25", "24", "22", "20"], correct: 1 }
+  { q: "João comprou 3 cadernos por R$12 cada. Quanto gastou?", options: ["R$36", "R$30", "R$24", "R$40"], correct: 0, category: "Multiplicação" },
+  { q: "Um ônibus transporta 45 pessoas. Quantas pessoas em 6 ônibus?", options: ["270", "300", "280", "250"], correct: 0, category: "Multiplicação" },
+  { q: "Se uma pizza custa R$48 e é dividida em 8 fatias, quanto custa cada fatia?", options: ["R$6", "R$8", "R$5", "R$7"], correct: 0, category: "Divisão" },
+  { q: "Um aluno leu 120 páginas em 4 dias. Quantas páginas por dia?", options: ["25", "30", "40", "35"], correct: 1, category: "Divisão" },
+  { q: "Se 5 caixas têm 125 balas no total, quantas balas em cada caixa?", options: ["30", "20", "25", "15"], correct: 2, category: "Divisão" },
+  { q: "Um produto de R$200 teve desconto de R$50. Quanto custa agora?", options: ["R$150", "R$160", "R$140", "R$130"], correct: 0, category: "Multiplicação" },
+  { q: "Qual o resultado de 120 ÷ 5?", options: ["25", "24", "22", "20"], correct: 1, category: "Divisão"},
+  { q: "João comprou 3 cadernos por R$12 cada. Quanto gastou?", options: ["R$36", "R$30", "R$24", "R$40"], correct: 0, category: "Multiplicação" }
 ];
 
 // Perguntas do 6º ano (frações, equações, problemas)
 const perguntas6 = [
-  { q: "Qual é 1/2 de 3/4?", options: ["3/8", "3/4", "2/4", "1/8"], correct: 0 },
-  { q: "Resolva: 2x = 10. Quanto vale x?", options: ["4", "5", "10", "2"], correct: 1 },
-  { q: "Quanto é 3/5 + 1/5?", options: ["4/5", "3/10", "5/10", "5/5"], correct: 0 },
-  { q: "Resolva: 12 ÷ (3 + 1)", options: ["3", "4", "2", "6"], correct: 0 },
-  { q: "Qual fração representa metade?", options: ["1/4", "1/2", "2/4", "2/3"], correct: 1 },
-  { q: "Resolva: x + 7 = 12", options: ["4", "5", "6", "3"], correct: 1 },
-  { q: "Se uma barra de chocolate tem 12 pedaços e você come 3, qual fração foi comida?", options: ["1/4", "1/2", "1/3", "1/6"], correct: 0 }
+  { q: "Qual é 1/2 de 3/4?", options: ["3/8", "3/4", "2/4", "1/8"], correct: 0, category: "Fração" },
+  { q: "Resolva: 2x = 10. Quanto vale x?", options: ["4", "5", "10", "2"], correct: 1, category: "Equação" },
+  { q: "Quanto é 3/5 + 1/5?", options: ["4/5", "3/10", "5/10", "5/5"], correct: 0, category: "Fração" },
+  { q: "Resolva: 12 ÷ (3 + 1)", options: ["3", "4", "2", "6"], correct: 0, category: "Equação" },
+  { q: "Qual fração representa metade?", options: ["1/4", "1/2", "2/4", "2/3"], correct: 1, category: "Fração" },
+  { q: "Resolva: x + 7 = 12", options: ["4", "5", "6", "3"], correct: 1, category: "Equação" },
+  { q: "Se uma barra de chocolate tem 12 pedaços e você come 3, qual fração foi comida?", options: ["1/4", "1/2", "1/3", "1/6"], correct: 0, category: "Fração" },
+  { q: "Resolva: 2x = 10. Quanto vale x?", options: ["4", "5", "10", "2"], correct: 1, category: "Equação" }
 ];
 
 const perguntas2 = [
@@ -199,6 +203,7 @@ const perguntas2 = [
 ]
 
 let perguntas = []; 
+let resultados = [];
 let nome = "";
 let ano = "";
 let indice = 0;
@@ -278,38 +283,38 @@ let timerInterval = null;
   const correta = perguntas[indice].correct;
   const botoes = document.querySelectorAll('.options button');
 
-  // Primeiro, remove estados antigos
+  // remove estados antigos
   botoes.forEach(b => {
     b.classList.remove('correta', 'errada', 'desativado');
   });
 
   if (i === correta) {
-    // Resposta correta: deixa a opção escolhida verde, outras cinzas
+    acertos++; 
+    resultados.push({ categoria: perguntas[indice].category, acertou: true });// ✅ incrementa acertos aqui
     botoes.forEach((b, index) => {
       if (index === correta) {
-        b.classList.add('correta');  // botão escolhido vira verde
+        b.classList.add('correta');
       } else {
-        b.classList.add('desativado');  // todos os outros cinza
+        resultados.push({ categoria: perguntas[indice].category, acertou: false });
+        b.classList.add('desativado');
       }
     });
   } else {
-    // Resposta errada: deixa a escolhida vermelha, a correta verde, e o resto cinza
     botoes.forEach((b, index) => {
       if (index === i) {
-        b.classList.add('errada');  // botão clicado (errado) em vermelho
+        b.classList.add('errada');
       } else if (index === correta) {
-        b.classList.add('correta'); // resposta certa em verde
+        b.classList.add('correta');
       } else {
-        b.classList.add('desativado'); // outros ficam cinza
+        b.classList.add('desativado');
       }
     });
   }
 
-  // Espera 1 segundo antes de mudar de tela
   setTimeout(() => {
     if (i === correta) {
       document.getElementById('feedbackMsg').textContent =
-        "Acertou! Olha como você está aprendendo rápido!";
+        "Acertou!";
     } else {
       document.getElementById('feedbackMsg').textContent =
         "Essa foi uma boa tentativa! Vamos tentar de novo?";
@@ -317,6 +322,20 @@ let timerInterval = null;
     trocarTela('feedbackScreen');
   }, 1000);
 }
+
+
+/*  // Espera 1 segundo antes de mudar de tela
+  setTimeout(() => {
+    if (i === correta) {
+      document.getElementById('feedbackMsg').textContent =
+        "Acertou!";
+    } else {
+      document.getElementById('feedbackMsg').textContent =
+        "Essa foi uma boa tentativa! Vamos tentar de novo?";
+    }
+    trocarTela('feedbackScreen');
+  }, 1000);*/
+
 
   function proximaPergunta() {
     indice++;
@@ -327,17 +346,14 @@ let timerInterval = null;
     }
   }
 
- function mostrarRelatorio() {
+function mostrarRelatorio() {
   trocarTela('reportScreen');
   const erros = perguntas.length - acertos;
-
-  // Agora o "melhorias" é só para diferenciar, pode ser 0 sempre
-  const melhorias = 0;
 
   document.getElementById('resumo').textContent = 
     `${nome} (${ano}) - Acertos: ${acertos}/${perguntas.length}`;
 
-  // Corrigindo os dados do gráfico (acertos e erros reais)
+  //gráfico 
   const ctx = document.getElementById('grafico').getContext('2d');
   new Chart(ctx, {
     type: 'pie',
@@ -350,7 +366,42 @@ let timerInterval = null;
     }
   });
 
-  // Mostra o botão de surpresa só se acertou 6 ou mais
+  //calcular por categoria
+  let categorias = {};
+  resultados.forEach(r => {
+    if (!categorias[r.categoria]) {
+      categorias[r.categoria] = { total: 0, acertos: 0, erros: 0 };
+    }
+    categorias[r.categoria].total++;
+    if (r.acertou) {
+      categorias[r.categoria].acertos++;
+    } else {
+      categorias[r.categoria].erros++;
+    }
+  });
+
+  //lista de acertos
+  let listaAcertos = "<h3>Desempenho Positivo</h3><ul>";
+  for (let cat in categorias) {
+    let porcentoAcerto = ((categorias[cat].acertos / categorias[cat].total) * 100).toFixed(1);
+    listaAcertos += `<li>${nome} acertou ${porcentoAcerto}% das questões de ${cat}. Excelente progresso nessa área!</li>`;
+  }
+  listaAcertos += "</ul>";
+
+  // === LISTA DE ERROS ===
+  let listaErros = "<h3>Áreas para Melhorar</h3><ul>";
+  for (let cat in categorias) {
+    let porcentoErro = ((categorias[cat].erros / categorias[cat].total) * 100).toFixed(1);
+    listaErros += `<li>${nome} errou ${porcentoErro}% das questões de ${cat}. Professor deverá reforçar o conteúdo de ${cat}.</li>`;
+  }
+  listaErros += "</ul>";
+
+  // Adiciona ao relatório
+  let divAnalise = document.createElement('div');
+  divAnalise.innerHTML = listaAcertos + listaErros;
+  document.getElementById('reportScreen').appendChild(divAnalise);
+
+  // === CONDIÇÃO PARA "VER SURPRESA" ===
   const botao = document.querySelector('#reportScreen button');
   if (acertos >= 6) {
     botao.style.display = 'inline-block';
@@ -358,7 +409,6 @@ let timerInterval = null;
     botao.style.display = 'none';
   }
 }
-
 
   function mostrarRecompensa() {
     trocarTela('rewardScreen');
