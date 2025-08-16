@@ -1,0 +1,66 @@
+#include <Servo.h>
+const int vermelho = 2;
+const int amarelo  = 4;
+const int azul     = 6;
+const int verde    = 8;
+
+Servo servo1;
+Servo servo2;
+Servo servo3;
+
+String comando = "";
+
+void setup() {
+  pinMode(vermelho, INPUT_PULLUP);
+  pinMode(amarelo, INPUT_PULLUP);
+  pinMode(azul, INPUT_PULLUP);
+  pinMode(verde, INPUT_PULLUP);
+  
+  servo1.attach(9);  // pino do servo 1
+  servo2.attach(10);
+  servo3.attach(11);
+
+  servo1.write(90);  // posição inicial
+  servo2.write(90);
+  servo3.write(90);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  if (digitalRead(vermelho) == LOW) {
+    Serial.println("BTN1");
+    delay(300);
+  }
+  else if (digitalRead(amarelo) == LOW) {
+    Serial.println("BTN2");
+    delay(300);
+  }
+  else if (digitalRead(azul) == LOW) {
+    Serial.println("BTN3");
+    delay(300);
+  }
+  else if (digitalRead(verde) == LOW) {
+    Serial.println("BTN4");
+    delay(300);
+  }
+  if (Serial.available()) {
+    comando = Serial.readStringUntil('\n');
+    comando.trim();
+
+    if (comando == "ACERTOU") {
+      // gira os servos rapidamente
+      servo1.write(0);
+      servo2.write(180);
+      delay(500);
+      servo1.write(90);
+      servo2.write(90);
+    }
+      if (comando == "BONUS") {
+      // gira servo3
+      servo3.write(90);
+      delay(800);
+      servo3.write(0);
+    }
+  }
+}
