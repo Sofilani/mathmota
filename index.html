@@ -142,6 +142,8 @@
     <canvas id="grafico"></canvas>
     <button onclick="mostrarRecompensa()">Ver Surpresa</button>
   </div>
+  
+ 
 
   <!-- Tela 6: Recompensa -->
   <div class="screen" id="rewardScreen">
@@ -283,34 +285,35 @@ let timerInterval = null;
   const correta = perguntas[indice].correct;
   const botoes = document.querySelectorAll('.options button');
 
-  // remove estados antigos
+  // Remove estados antigos
   botoes.forEach(b => {
     b.classList.remove('correta', 'errada', 'desativado');
   });
 
+  // Registra acerto ou erro
+  resultados.push({ categoria: perguntas[indice].category, acertou: i === correta });
+
   if (i === correta) {
-    acertos++; 
-    resultados.push({ categoria: perguntas[indice].category, acertou: true });// ✅ incrementa acertos aqui
+    acertos++;
+    socket.emit('acertou'); 
     botoes.forEach((b, index) => {
       if (index === correta) {
         b.classList.add('correta');
       } else {
-        resultados.push({ categoria: perguntas[indice].category, acertou: false });
         b.classList.add('desativado');
       }
     });
   } else {
     botoes.forEach((b, index) => {
       if (index === i) {
-        b.classList.add('errada');
+        b.classList.add('errada'); // Mostra qual o aluno marcou
       } else if (index === correta) {
-        b.classList.add('correta');
+        b.classList.add('correta'); // Mostra qual era a certa
       } else {
         b.classList.add('desativado');
       }
     });
   }
-
   setTimeout(() => {
     if (i === correta) {
       document.getElementById('feedbackMsg').textContent =
@@ -324,8 +327,8 @@ let timerInterval = null;
 }
 
 
-/*  // Espera 1 segundo antes de mudar de tela
-  setTimeout(() => {
+  // Espera 1 segundo antes de mudar de tela
+/*  setTimeout(() => {
     if (i === correta) {
       document.getElementById('feedbackMsg').textContent =
         "Acertou!";
@@ -347,13 +350,14 @@ let timerInterval = null;
   }
 
 function mostrarRelatorio() {
+
   trocarTela('reportScreen');
   const erros = perguntas.length - acertos;
 
-  document.getElementById('resumo').textContent = 
+  document.getElementById('resumo').textContent =
     `${nome} (${ano}) - Acertos: ${acertos}/${perguntas.length}`;
 
-  //gráfico 
+  // === GRÁFICO ===
   const ctx = document.getElementById('grafico').getContext('2d');
   new Chart(ctx, {
     type: 'pie',
@@ -366,7 +370,7 @@ function mostrarRelatorio() {
     }
   });
 
-  //calcular por categoria
+  // === CALCULAR POR CATEGORIA ===
   let categorias = {};
   resultados.forEach(r => {
     if (!categorias[r.categoria]) {
@@ -380,28 +384,53 @@ function mostrarRelatorio() {
     }
   });
 
-  //lista de acertos
-  let listaAcertos = "<h3>Desempenho Positivo</h3><ul>";
+  // === MONTAR OS PAINÉIS DE RESULTADOS ===
+  let painelAcertos = `<div style="background:#1E90FF;padding:10px;border-radius:20px;width:200px;margin:10px;">
+                         <h3 style="margin:0;">Acertos:</h3>`;
   for (let cat in categorias) {
     let porcentoAcerto = ((categorias[cat].acertos / categorias[cat].total) * 100).toFixed(1);
-    listaAcertos += `<li>${nome} acertou ${porcentoAcerto}% das questões de ${cat}. Excelente progresso nessa área!</li>`;
+    painelAcertos += `<p>${cat}: ${porcentoAcerto}%</p>`;
   }
-  listaAcertos += "</ul>";
+  painelAcertos += `</div>`;
 
-  // === LISTA DE ERROS ===
-  let listaErros = "<h3>Áreas para Melhorar</h3><ul>";
+  let painelErros = `<div style="background:#e74c3c;padding:10px;border-radius:20px;width:200px;margin:10px;">
+                       <h3 style="margin:0;">Erros:</h3>`;
   for (let cat in categorias) {
     let porcentoErro = ((categorias[cat].erros / categorias[cat].total) * 100).toFixed(1);
-    listaErros += `<li>${nome} errou ${porcentoErro}% das questões de ${cat}. Professor deverá reforçar o conteúdo de ${cat}.</li>`;
+    painelErros += `<p>${cat}: ${porcentoErro}%</p>`;
   }
-  listaErros += "</ul>";
+  painelErros += `</div>`;
 
-  // Adiciona ao relatório
-  let divAnalise = document.createElement('div');
-  divAnalise.innerHTML = listaAcertos + listaErros;
-  document.getElementById('reportScreen').appendChild(divAnalise);
+  // === DEFINIR PONTO DE MELHORIA ===
+  let piorCategoria = null;
+  let maiorErro = 0;
+  for (let cat in categorias) {
+    let porcentoErro = (categorias[cat].erros / categorias[cat].total) * 100;
+    if (porcentoErro > maiorErro) {
+      maiorErro = porcentoErro;
+      piorCategoria = cat;
+    }
+  }
 
-  // === CONDIÇÃO PARA "VER SURPRESA" ===
+  let painelMelhoria = `<div style="background:#2ecc71;padding:10px;border-radius:20px;width:300px;margin:10px;">
+                          <h3 style="margin:0;">Pontos de melhoria:</h3>
+                          <p>O aluno <b>${nome}</b> apresentou mais dificuldades em <b>${piorCategoria}</b>, 
+                          por consequência é indicado prestar apoio e mais atenção em atividades relacionadas a <b>${piorCategoria}</b>.</p>
+                        </div>`;
+
+  // === INSERIR OS PAINÉIS NO RELATÓRIO ===
+  let container = document.createElement('div');
+  container.style.display = 'flex';
+  container.style.justifyContent = 'center';
+  container.style.alignItems = 'flex-start';
+  container.style.gap = '20px';
+  container.style.marginTop = '20px';
+  container.innerHTML = painelAcertos + painelErros + painelMelhoria;
+
+  document.getElementById('reportScreen').appendChild(container);
+  
+
+  // === BOTÃO DE RECOMPENSA ===
   const botao = document.querySelector('#reportScreen button');
   if (acertos >= 6) {
     botao.style.display = 'inline-block';
@@ -410,7 +439,10 @@ function mostrarRelatorio() {
   }
 }
 
+
+
   function mostrarRecompensa() {
+    socket.emit('recompensa');
     trocarTela('rewardScreen');
     document.getElementById('userName').textContent = nome;
   }
