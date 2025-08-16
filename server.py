@@ -24,6 +24,7 @@ except:
     arduino = None
     print("⚠ Não foi possível conectar ao Arduino. Verifique a porta.")
 
+acertos = 0 
 # ===== ROTA PRINCIPAL (CARREGA O SITE) =====
 @app.route('/')
 def index():
@@ -46,9 +47,28 @@ def ler_serial():
             print(f"Erro lendo serial: {e}")
             break
 
+# ===== EVENTO DE ACERTO (vem do site) =====
+@socketio.on('acertou')
+def handle_acerto():
+    global acertos
+    acertos += 1
+    print(f"✅ Usuário acertou ({acertos} acertos até agora)")
+
+    if arduino:
+        arduino.write(b"ACERTOU\n")  # aciona servo1 e servo2
+       
+@socketio.on('recompensa')
+def handle_recompensa():
+    global acertos
+    print(f"Pagina da recompensa: {acertos} acertos")
+
+    if arduino and acertos in [7, 8]:
+        arduino.write(b"BONUS\n")       
+
 
 # ===== INICIA O SERVIDOR =====
 if __name__ == '__main__':
     socketio.start_background_task(ler_serial)
     socketio.run(app, host='0.0.0.0', port=5001)
     
+
