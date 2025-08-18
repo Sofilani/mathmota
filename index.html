@@ -108,7 +108,7 @@
       <option value="6º ano">6º ano</option>
       <option value="2º ano">2º ano técnico</option>
     </select>
-    <button onclick="iniciarQuiz()">Continuar</button>
+    <button onclick="iniciarQuiz(); reset()">Continuar</button>
   </div>
   
 
@@ -326,20 +326,6 @@ let timerInterval = null;
   }, 1000);
 }
 
-
-  // Espera 1 segundo antes de mudar de tela
-/*  setTimeout(() => {
-    if (i === correta) {
-      document.getElementById('feedbackMsg').textContent =
-        "Acertou!";
-    } else {
-      document.getElementById('feedbackMsg').textContent =
-        "Essa foi uma boa tentativa! Vamos tentar de novo?";
-    }
-    trocarTela('feedbackScreen');
-  }, 1000);*/
-
-
   function proximaPergunta() {
     indice++;
     if (indice < perguntas.length) {
@@ -451,10 +437,6 @@ const socket = io('http://localhost:5001');
   console.log("O script está rodando!");
   transports: ['websocket']
 
-  /*socket.on('connect', () => {
-    console.log('Conectado ao servidor!');
-  });*/
-  
   socket.on('botao', data => {
     // Adicione esta linha para ver os dados que chegam
     console.log('Evento de botão recebido! Dados:', data);
@@ -462,6 +444,9 @@ const socket = io('http://localhost:5001');
     const botao = data.botao.replace('BTN','') - 1;
     responder(botao);
   });
+  function reset() {
+  socket.emit("reset");
+  }
  
 </script>
 </body>
