@@ -587,7 +587,7 @@ function mostrarRelatorio() {
   socket.on('botao', data => {
     console.log('Evento de botão recebido! Dados:', data);
     const botao = data.botao.replace('BTN','') - 1;
-    responder(botao);
+    responder(botao); 
   });
 
   function reset() {
