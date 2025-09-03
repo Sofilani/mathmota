@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -10,6 +10,103 @@
    <!-- Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
+    #loadingScreen {
+  display: none; /* fica oculto por padrão */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0,0,0,0.7); /* fundo escuro semi-transparente */
+}
+
+#loadingScreen.active {
+  display: flex;
+}
+
+.loading-wrapper h1 {
+  color: white;
+  font-size: 2em;
+  font-family: sans-serif;
+  text-align: center;
+}
+
+/* Pontinhos animados */
+.dots {
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  height: 12px;
+  margin-left: 10px;
+}
+
+.dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  animation: move 1.5s infinite ease-in-out;
+}
+
+.dot:nth-child(1) { left: 0;   animation-delay: 0s; }
+.dot:nth-child(2) { left: 20px; animation-delay: 0.2s; }
+.dot:nth-child(3) { left: 40px; animation-delay: 0.4s; }
+
+@keyframes move {
+  0%   { transform: translateY(0); opacity: 0.5; }
+  25%  { transform: translateY(-10px); opacity: 1; }
+  50%  { transform: translateY(0); opacity: 0.5; }
+  75%  { transform: translateY(10px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 0.5; }
+}
+
+    /* Tela de parabéns */
+#rewardScreen {
+  background: #FFD700; /* amarelo ouro no fundo */
+  color: #000; /* texto preto para contraste */
+}
+
+/* Caixa do texto */
+#rewardScreen .caixa {
+  background: #FFF8B0; /* amarelo clarinho */
+  padding: 20px;        /* menos espaçamento interno */
+  border-radius: 20px; 
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+  max-width: 5000px;     /* menor largura */
+  margin: 400px auto 0; /* centraliza horizontalmente e empurra pra baixo */
+  text-align: center;   /* mantém o texto centralizado */
+}
+.dots {
+  display: inline-block;
+  margin-left: 10px;
+  position: relative;
+  width: 60px; /* espaço para o movimento */
+  height: 12px;
+}
+
+.dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  animation: move 1.5s infinite ease-in-out;
+}
+
+.dot:nth-child(1) { left: 0;   animation-delay: 0s; }
+.dot:nth-child(2) { left: 20px; animation-delay: 0.2s; }
+.dot:nth-child(3) { left: 40px; animation-delay: 0.4s; }
+
+@keyframes move {
+  0%   { transform: translateX(0); opacity: 0.5; }
+  25%  { transform: translateX(10px); opacity: 1; }
+  50%  { transform: translateX(0); opacity: 0.5; }
+  75%  { transform: translateX(-10px); opacity: 1; }
+  100% { transform: translateX(0); opacity: 0.5; }
+}
+
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -73,6 +170,14 @@
   border-radius: 10px;
   padding: 10px;
 }
+  .progresso {
+  text-align: center;           /* centraliza o texto */
+  color: gold;                  /* dourado */
+  font-size: 1.8em;             /* aumenta o tamanho */
+  font-weight: bold;            /* deixa destacado */
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.5); /* sombra para destacar */
+  margin-bottom: 15px;
+}
 
     .opcao-vermelho { background: #e74c3c; }
     .opcao-azul    { background: #3498db; }
@@ -94,10 +199,10 @@
   cursor: pointer;
     }
     .desativado { background: #aec0c2 !important; color: #010101 !important; }
-
+ 
     /* ===== Teclado Virtual ===== */
     #keyboard {
-       #keyboard {
+     #keyboard {
     display: none; /* oculto por padrão */
     border: 1px solid #ccc;
     padding: 10px;
@@ -113,15 +218,6 @@
     display: flex;
     margin-bottom: 8px;
   }
-
-  .progresso {
-  text-align: center;           /* centraliza o texto */
-  color: gold;                  /* dourado */
-  font-size: 1.8em;             /* aumenta o tamanho */
-  font-weight: bold;            /* deixa destacado */
-  text-shadow: 2px 2px 5px rgba(0,0,0,0.5); /* sombra para destacar */
-  margin-bottom: 15px;
-}
 
 
   .key {
@@ -144,6 +240,13 @@
     text-align: center;
   }
 }
+#feedbackMsg {
+  text-align: center;     
+  margin-top: 50px;
+  font-size: 2em;         
+  color: #fff;           
+}
+
     @keyframes fadeIn { from {opacity:0} to {opacity:1} }
   </style>
 </head>
@@ -191,36 +294,56 @@
 </div>
 
 <!-- Outras Telas -->
-<div class="screen" id="loadingScreen"><h1>Preparando para as perguntas...</h1></div>
-<div class="screen" id="questionScreen">
-<h3 id="progressoPergunta" style="text-align:center; color:gold; font-size:1.8em; font-weight:bold; text-shadow:2px 2px 5px rgba(0,0,0,0.5); margin-bottom:15px;"></h3>
-  <h2 id="pergunta"></h2>
+<div class="screen" id="loadingScreen">
+  <div class="loading-wrapper">
+    <h1>
+      Preparando para as perguntas
+      <span class="dots">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </span>
+    </h1>
+  </div>
+  </div>
 
+<div class = "screen" id="questionScreen">
+<h3 id="progressoPergunta"></h3>
+  <h2 id="pergunta"></h2>
   <div class="options">
     <button onclick="responder(0)" id="opt0" class="opcao-vermelho"></button>
     <button onclick="responder(1)" id="opt1" class="opcao-azul"></button>
     <button onclick="responder(2)" id="opt2" class="opcao-amarelo"></button>
     <button onclick="responder(3)" id="opt3" class="opcao-verde"></button>
   </div>
+  
 
   <!-- Barra de tempo rosa -->
   <div id="timerBar" style="width: 80%; height: 20px; background: #ddd; border-radius: 15px; margin: 20px auto;">
     <div id="preenchimentoBarra" style="width: 100%; height: 100%; background: #ff69b4; border-radius: 15px;"></div>
   </div>
-</div>
+  </div>
+  
+
+
 
 <div class="screen" id="feedbackScreen">
   <h1 id="feedbackMsg"></h1>
+ <img id="imgErro" src="{{ url_for('static', filename='erro.jpg') }}"  alt="cara vermelha"
+       style="width:50%; height:auto; display:none; margin:0 auto;">
   <button onclick="proximaPergunta()">Próxima</button>
 </div>
+
 <div class="screen" id="reportScreen">
   <h2 id="resumo"></h2>
   <canvas id="grafico"></canvas>
   <button onclick="mostrarRecompensa()">Ver Surpresa</button>
 </div>
 <div class="screen" id="rewardScreen">
-  <h1>Parabéns, <span id="userName"></span>! 🎉</h1>
-  <p>Você acertou tudinho! Aqui está sua surpresa: 🎁</p>
+  <div class="caixa">
+    <h1>Parabéns, <span id="userName"></span>! 🎉</h1>
+    <p>Você acertou tudinho! Aqui está sua surpresa: 🎁</p>
+  </div>
 </div>
 
 <script>
@@ -440,7 +563,9 @@
     setTimeout(() => {
       if (i === correta) {
         document.getElementById('feedbackMsg').textContent = "Acertou!";
+        document.getElementById('imgErro').style.display = 'none';
       } else {
+        document.getElementById('imgErro').style.display = "block"; 
         document.getElementById('feedbackMsg').textContent = "Essa foi uma boa tentativa! Vamos tentar de novo?";
       }
       trocarTela('feedbackScreen');
@@ -587,7 +712,7 @@ function mostrarRelatorio() {
   socket.on('botao', data => {
     console.log('Evento de botão recebido! Dados:', data);
     const botao = data.botao.replace('BTN','') - 1;
-    responder(botao); 
+    responder(botao);
   });
 
   function reset() {
