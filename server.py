@@ -68,10 +68,17 @@ def handle_recompensa():
 def handle_reset():
     global acertos
     acertos = 0
-    print("🔄 Jogo reiniciado! Acertos zerados.")
+    print(" Jogo reiniciado! Acertos zerados.")
+
+@socketio.on('errou')
+def handle_erro():
+    if arduino:
+        arduino.write(b"ERROU\n")
+
 
 # ===== INICIA O SERVIDOR =====
 if __name__ == '__main__':
     socketio.start_background_task(ler_serial)
     socketio.run(app, host='0.0.0.0', port=5001)
     
+
