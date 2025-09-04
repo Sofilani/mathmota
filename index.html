@@ -550,6 +550,7 @@
         }
       });
     } else {
+      socket.emit('errou'); 
       botoes.forEach((b, index) => {
         if (index === i) {
           b.classList.add('errada');
