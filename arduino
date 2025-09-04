@@ -1,33 +1,119 @@
 #include <Servo.h>
+#include <Adafruit_NeoPixel.h>
+
+// ------------------------
+// CONFIGURAÇÃO DA FITA LED
+// ------------------------
+#define LED_PIN 3
+#define NUM_LEDS 30
+Adafruit_NeoPixel strip(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+// ------------------------
+// CONFIGURAÇÃO DOS BOTÕES
+// ------------------------
 const int vermelho = 2;
 const int amarelo  = 4;
 const int azul     = 6;
 const int verde    = 8;
 
+int led = 1;
+int led2 = 12;
+int led3 = 7;
+int led4 = 5;
+
+// ------------------------
+// CONFIGURAÇÃO DOS SERVOS
+// ------------------------
 Servo servo1;
 Servo servo2;
 Servo servo3;
 
 String comando = "";
 
+// ------------------------
+// FUNÇÃO DO EFEITO COBRINHA COM RASTRO
+// ------------------------
+void efeitoCobraverde() {
+  // Gera uma cor aleatória
+  int r = random(0, 256);
+  int g = random(0, 256);
+  int b = random(0, 256);
+
+  for (int i = 0; i < NUM_LEDS; i++) {
+    strip.clear(); 
+
+    // acende o LED atual e os 4 anteriores para formar o rastro de 5 LEDs
+    for (int j = 0; j < 5; j++) {
+      int idx = i - j;
+      if (idx >= 0) {
+        strip.setPixelColor(idx, strip.Color(0, 255, 0));
+      }
+    }
+
+    strip.show();
+    delay(50); // velocidade do efeito
+  }
+}
+
+void efeitoCobravermelho(){
+  int r = random(0,256);
+  int g = random(0, 256);
+  int b = random(0, 256);
+  for (int i = 0; i < NUM_LEDS; i++) {
+    strip.clear(); 
+
+    // acende o LED atual e os 4 anteriores para formar o rastro de 5 LEDs
+    for (int j = 0; j < 5; j++) {
+      int idx = i - j;
+      if (idx >= 0) {
+        strip.setPixelColor(idx, strip.Color(255, 0, 0));
+      }
+    }
+
+    strip.show();
+    delay(50); // velocidade do efeito
+  }
+}
+
 void setup() {
+  // Botões
   pinMode(vermelho, INPUT_PULLUP);
   pinMode(amarelo, INPUT_PULLUP);
   pinMode(azul, INPUT_PULLUP);
   pinMode(verde, INPUT_PULLUP);
+
+  pinMode(led, OUTPUT);
+  pinMode(led2, OUTPUT);
+  pinMode(led3, OUTPUT);
+  pinMode(led4, OUTPUT);
+
   
-  servo1.attach(9);  // pino do servo 1
+  // Servos
+  servo1.attach(9);
   servo2.attach(10);
   servo3.attach(11);
 
-  servo1.write(90);  // posição inicial
+  servo1.write(90);
   servo2.write(90);
   servo3.write(90);
 
+  // LEDS
+  strip.begin();
+  strip.show(); // inicia apagado
+
+  // Inicializa serial
   Serial.begin(9600);
+
+  // Inicializa gerador de números aleatórios
+  randomSeed(analogRead(A0));
 }
 
 void loop() {
+  digitalWrite(led, HIGH);
+  digitalWrite(led2, HIGH);
+  digitalWrite(led3, HIGH);
+  digitalWrite(led4, HIGH);
+  // Leitura dos botões
   if (digitalRead(vermelho) == LOW) {
     Serial.println("BTN1");
     delay(300);
@@ -44,24 +130,32 @@ void loop() {
     Serial.println("BTN4");
     delay(300);
   }
+
+  // Recebe comandos via Serial
   if (Serial.available()) {
     comando = Serial.readStringUntil('\n');
     comando.trim();
 
     if (comando == "ACERTOU") {
+      Serial.println("ACERTOU");
       // gira os servos rapidamente
       servo1.write(0);
       servo2.write(180);
+      efeitoCobraverde();   // <<< chama a fita quando o servo é acionado
       delay(500);
       servo1.write(90);
       servo2.write(90);
     }
-      if (comando == "BONUS") {
+    if (comando == "ERROU"){
+      Serial.println("ERROU");
+     efeitoCobravermelho();
+    }
+    if (comando == "BONUS") {
       // gira servo3
       servo3.write(0);
+        // <<< chama a fita quando o servo é acionado
       delay(2000);
       servo3.write(90);
     }
   }
 }
-
