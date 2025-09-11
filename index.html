@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -6,8 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-
-   <!-- Confetti -->
+  <script src="https://unpkg.com/@lottiefiles/dotlottie-wc" type="module"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
     #loadingScreen {
@@ -133,6 +132,10 @@
   height: 100%;
   animation: fadeIn 0.5s;
 }
+#screen1 {
+  width: 100%;
+  height: 100%;
+}
 
 /* Estilo específico para a pergunta */
 #pergunta {
@@ -254,9 +257,30 @@
 
 <!-- Tela 1 -->
 <div class="screen active" id="screen1">
-  <img src="public/robo2.png" alt="carinha de robo" style="width:50%; height:auto; display:block; margin:0 auto;">
-  <button onclick="mostrarTela2()">Continuar</button>
+  <dotlottie-wc 
+    src="{{ url_for('static', filename='mathrosto.lottie') }}" 
+    background="transparent"
+    speed="1"
+    style="width: 2500px; height: 2420px;"
+    loop autoplay
+  ></dotlottie-wc>
+  </div>
+
+ <script>
+  const tela1 = document.getElementById("screen1");
+
+
+  // Clique no PC
+  tela1.addEventListener("click", () => {
+    mostrarTelaMenu();
+  });
+</script>
+<div class="screen" id="menuScreen">
+  <h1>Quem é você?</h1>
+  <button onclick="entrarAluno()">Aluno</button>
+  <button onclick="entrarProfessor()">Professor</button>
 </div>
+
   
 <!-- Tela 2: Nome e Ano -->
 <div class="screen" id="screen2">
@@ -291,6 +315,34 @@
       <span class="key key-wide" data-action="space">Espaço</span>
     </div>
   </div>
+</div>
+
+<div class="screen" id="senhaScreen">
+  <h1>Digite a senha do professor</h1>
+  <input type="password" id="senhaProfessor" placeholder="Senha">
+  <button onclick="validarSenha()">Entrar</button>
+  <p id="erroSenha" style="color:red; display:none;">Senha incorreta!</p>
+</div>
+<div class="screen" id="anoProfessorScreen">
+  <h1>Selecione o ano</h1>
+  <select id="anoProfessor">
+    <option value="">Escolha o ano</option>
+    <option value="3º ano">3º ano</option>
+    <option value="4º ano">4º ano</option>
+    <option value="5º ano">5º ano</option>
+    <option value="6º ano">6º ano</option>
+    <option value="2º ano">2º ano técnico</option>
+  </select>
+  <button onclick="mostrarParticipantes()">Continuar</button>
+</div>
+<div class="screen" id="participantesScreen">
+  <h1>Participantes</h1>
+  <ul id="listaParticipantes"></ul>
+</div>
+<div class="screen" id="relatorioScreen">
+  <h1>Relatório</h1>
+  <div id="dadosRelatorio"></div>
+  <button onclick="voltarParticipantes()">Voltar</button>
 </div>
 
 <!-- Outras Telas -->
@@ -329,7 +381,9 @@
 
 <div class="screen" id="feedbackScreen">
   <h1 id="feedbackMsg"></h1>
- <img id="imgErro" src="{{ url_for('static', filename='erro.jpg') }}"  alt="cara vermelha"
+ <img id="imgErro" src="{{ url_for('static', filename='matherro.jpg') }}"  alt="cara vermelha"
+       style="width:50%; height:auto; display:none; margin:0 auto;">
+ <img id="imgAcerto" src="{{ url_for('static', filename='mathacerto.jpg') }}"  alt="cara verde"
        style="width:50%; height:auto; display:none; margin:0 auto;">
   <button onclick="proximaPergunta()">Próxima</button>
 </div>
@@ -348,51 +402,58 @@
 
 <script>
   const perguntas3 = [
-    { q: "5 + 7 = ?", options: ["10", "12", "13", "14"], correct: 1, category: "Soma"},
-    { q: "15 - 8 = ?", options: ["6", "7", "8", "5"], correct: 1, category: "Subtração" },
-    { q: "9 + 4 = ?", options: ["12", "14", "13", "15"], correct: 2, category: "Soma" },
-    { q: "18 - 6 = ?", options: ["12", "11", "10", "13"], correct: 0, category: "Subtração" },
-    { q: "7 + 7 = ?", options: ["12", "15", "13", "14"], correct: 3, category: "Soma" },
-    { q: "20 - 9 = ?", options: ["10", "12", "11", "9"], correct: 2, category: "Subtração" },
-    { q: "6 + 8 = ?", options: ["12", "14", "13", "15"], correct: 1, category: "Soma" },
-    { q: "20 - 9 = ?", options: ["10", "12", "11", "9"], correct: 2, category: "Subtração" }
+    { q: "Quanto é 348 + 126?", options: ["464", "484", "474", "494"], correct: 2, category: "Operações com Números Naturais"},
+    { q: "Quanto é 6 × 4?", options: ["20", "18", "24", "28"], correct: 2, category: "Operações com Números Naturais" },
+    { q: "Quanto é 9 × 3?", options: ["21", "24", "27", "30"], correct: 2, category: "Operações com Números Naturais" },
+    { q: "Quanto é 10 ÷ 2?", options: ["2", "5", "4", "6"], correct: 1, category: "Operações com Números Naturais" },
+    { q: "O número que vem depois de 699 é:", options: ["600 ", " 700", " 799", "701"], correct: 1, category: "Sistema de Numeração Decimal" },
+    { q: "Qual é o valor posicional do algarismo 7 no número 572?", options: ["7 unidades", "7 dezenas", "7 centenas", "70 centenas"], correct: 1, category: "     Sistema de Numeração Decimal" },
+    { q: "Qual é a decomposição correta do número 736?", options: ["700 + 30 + 6", "70 + 300 + 6", "700 + 36", "7 + 36"], correct: 0, category: "Sistema de Numeração Decimal" },
+    { q: "Qual é o número que tem 6 centenas, 2 dezenas e 5 unidades?", options: ["625", "652", "265", "562"], correct: 0, category: "Sistema de Numeração Decimal" }
   ];
 
   const perguntas4 = [
-    { q: "6 x 7 = ?", options: ["42", "36", "40", "48"], correct: 0, category: "Multiplicação" },
-    { q: "56 ÷ 8 = ?", options: ["6", "8", "7", "9"], correct: 2, category: "Divisão" },
-    { q: "9 x 5 = ?", options: ["45", "40", "35", "50"], correct: 0, category: "Multiplicação" },
-    { q: "72 ÷ 9 = ?", options: ["6", "9", "8", "7"], correct: 2, category: "Divisão" },
-    { q: "8 x 8 = ?", options: ["64", "72", "56", "60"], correct: 0, category: "Multiplicação" },
-    { q: "63 ÷ 7 = ?", options: ["8", "9", "7", "10"], correct: 1, category: "Divisão" },
-    { q: "12 x 4 = ?", options: ["48", "36", "40", "44"], correct: 0, category: "Multiplicação" },
-    { q: "63 ÷ 7 = ?", options: ["8", "9", "7", "10"], correct: 1, category: "Divisão" }
+    { q: "Quanto é 325 + 478?", options: ["703", "803", "793", "813"], correct: 2, category: "Operação com Números Naturais" },
+    { q: "Qual é o resultado de 942 – 586?", options: ["356", "376", "366", "386"], correct: 0, category: "Operação com Números Naturais" },
+    { q: "Se João tinha 250 reais e gastou 175, com quanto ele ficou?", options: ["65", "75", "70", "85"], correct: 1, category: "Operação com Números Naturais" },
+    { q: "Calcule 36 × 4:", options: ["124", "144", "134", "154"], correct: 1, category: "Operação com Números Naturais" },
+    { q: "Se uma barra de chocolate foi dividida em 8 partes iguais e Maria comeu 3, qual fração ela comeu?", options: ["3/4", "5/8", "3/8", "8/3"], correct: 2, category: "Questões de Frações" },
+    { q: "Se você tem 3 fatias de 3 iguais, qual fração você tem?", options: [" 3/3", "2/3", " 1/3", "1/2"], correct: 0, category: "Questões de Frações" },
+    { q: "Qual fração representa “um terço de um bolo”?", options: ["1/2", "1/4", "1/3", "1/6"], correct: 2, category: "Questões de Frações" },
+    { q: "Qual fração é equivalente a 3/6?", options: ["1/2", "2/3", " 1/3", "3/3"], correct: 0, category: "Questões de Frações" }
   ];
 
   const perguntas5 = [
-    { q: "João comprou 3 cadernos por R$12 cada. Quanto gastou?", options: ["R$36", "R$30", "R$24", "R$40"], correct: 0, category: "Multiplicação" },
-    { q: "Um ônibus transporta 45 pessoas. Quantas pessoas em 6 ônibus?", options: ["270", "300", "280", "250"], correct: 0, category: "Multiplicação" },
-    { q: "Se uma pizza custa R$48 e é dividida em 8 fatias, quanto custa cada fatia?", options: ["R$6", "R$8", "R$5", "R$7"], correct: 0, category: "Divisão" },
-    { q: "Um aluno leu 120 páginas em 4 dias. Quantas páginas por dia?", options: ["25", "30", "40", "35"], correct: 1, category: "Divisão" },
-    { q: "Se 5 caixas têm 125 balas no total, quantas balas em cada caixa?", options: ["30", "20", "25", "15"], correct: 2, category: "Divisão" },
-    { q: "Um produto de R$200 teve desconto de R$50. Quanto custa agora?", options: ["R$150", "R$160", "R$140", "R$130"], correct: 0, category: "Multiplicação" },
-    { q: "Qual o resultado de 120 ÷ 5?", options: ["25", "24", "22", "20"], correct: 1, category: "Divisão"},
-    { q: "João comprou 3 cadernos por R$12 cada. Quanto gastou?", options: ["R$36", "R$30", "R$24", "R$40"], correct: 0, category: "Multiplicação" }
+    { q: "Qual é o valor de 125 × 4?", options: ["450", "520", " 500", "525"], correct: 2, category: "Operações com Números Naturais" },
+    { q: "Calcule 56 × 6:", options: ["326", "346", "336", "356"], correct: 2, category: "Operações com Números Naturais" },
+    { q: "Uma escola tem 432 alunos e quer dividir igualmente em 8 turmas. Quantos alunos em cada turma?", options: ["52", "54", "53", "55"], correct: 1, category: "Operações com Números Naturais" },
+    { q: "Calcule a divisão 48 ÷ 6:", options: ["6", "8", "7", "9"], correct: 1, category: "Operações com Números Naturais" },
+    { q: "Complete 2,3 + 1,4 = ?", options: ["3,6", "3,8", "3,7", "3,9"], correct: 2, category: "Número Decimal" },
+    { q: "Qual número decimal representa meio?", options: [" 0,05", "5,0", "0,5", "0,50"], correct: 2, category: "Número Decimal" },
+    { q: "Escreva em decimal: 3 unidades e 2 décimos", options: ["3,02", "32", " 3,2", "0,32"], correct: 2, category: "Número Decimal"},
+    { q: "Complete  4,5 – 2,3= ?", options: ["1,9", "2,2", "2,1", " 2,3"], correct: 2, category: "Número Decimal" }
   ];
 
   const perguntas6 = [
-    { q: "Qual é 1/2 de 3/4?", options: ["3/8", "3/4", "2/4", "1/8"], correct: 0, category: "Fração" },
-    { q: "Resolva: 2x = 10. Quanto vale x?", options: ["4", "5", "10", "2"], correct: 1, category: "Equação" },
-    { q: "Quanto é 3/5 + 1/5?", options: ["4/5", "3/10", "5/10", "5/5"], correct: 0, category: "Fração" },
-    { q: "Resolva: 12 ÷ (3 + 1)", options: ["3", "4", "2", "6"], correct: 0, category: "Equação" },
-    { q: "Qual fração representa metade?", options: ["1/4", "1/2", "2/4", "2/3"], correct: 1, category: "Fração" },
-    { q: "Resolva: x + 7 = 12", options: ["4", "5", "6", "3"], correct: 1, category: "Equação" },
-    { q: "Se uma barra de chocolate tem 12 pedaços e você come 3, qual fração foi comida?", options: ["1/4", "1/2", "1/3", "1/6"], correct: 0, category: "Fração" },
-    { q: "Resolva: 2x = 10. Quanto vale x?", options: ["4", "5", "10", "2"], correct: 1, category: "Equação" }
+    { q: "Calcule a multiplicação 76 × 9", options: ["674", "694", "684", " 704"], correct: 2, category: " Operações com Números Naturais" },
+    { q: "Calcule a Divisão  1.152 ÷ 8", options: ["142", "146", "148", "144"], correct: 3, category: " Operações com Números Naturais" },
+    { q: "Multiplique 245 × 5:", options: ["1.125", "1.325", "1.425", " 1.225"], correct: 3, category: " Operações com Números Naturais" },
+    { q: "Uma escola tem 1.080 alunos e quer dividir igualmente em 12 turmas. Quantos alunos em cada turma?", options: ["85", "90", "95", "100"], correct: 1, category: " Operações com Números Naturais" },
+    { q: "Qual é 10% de 200?", options: ["10", "15", "20", "25"], correct: 2, category: "   Porcentagem " },
+    { q: "Um produto custa R$ 150,00 e teve 20% de desconto. Quanto é o desconto?", options: [" R$ 25", " R$ 35", "R$ 39", "R$ 30"], correct: 3, category: " Porcentagem" },
+    { q: "Qual é 50% de 90?", options: ["40", "50", "45", "55"], correct: 2, category: "Porcentagem" },
+    { q: "Se uma nota tem 80 questões e você acertou 90% delas, quantas questões acertou?", options: ["70", "72", "75", "80"], correct: 1, category: " Porcentagem" }
   ];
 
   const perguntas2 = [
-    { q: "Qual é a lógica da sequência: 1, 3, 5, 7, ___?", options: ["2", "8", "9", "10"], correct: 2},
+    { q: "Quanto vale cos(0°)?", options: ["0", "1/2", "90", "1"], correct: 3,  category: " Trigonometria"},
+    { q: "Qual é a soma dos ângulos internos de um quadrilátero?", options: ["180°", "270°", "360°", "540°"], correct: 2, category: " Polígonos" },
+    { q: "Quanto vale sin(30°)?", options: ["0", "1/2", "1", "30"], correct: 1, category: " Trigonometria" },
+    { q: "Um hexágono regular tem todos os ângulos iguais.Qual é a medida de cada ângulo interno?", options: ["100°", "120°", "135°", "140°"], correct: 1, category: " Polígonos" },
+    { q: "Quanto vale sin(0°)?", options: ["1/2", "0", "1", "3/4"], correct: 1, category: "   Trigonometria " },
+    { q: "Quantos diagonais tem um pentágono?", options: ["31", "5", "70", "1"], correct: 1, category: " Polígonos" },
+    { q: "Se cos (𝜃) = 1/2 e θ está no primeiro quadrante, qual é o valor de 𝜃?", options: ["30°", "45°", "60°", "90°"], correct: 0, category: " Trigonmometria" },
+    { q: "Seja um triângulo retângulo em que um dos ângulos agudos mede 30° e a hipotenusa mede 10.Qual é o valor do cateto oposto a esse ângulo de 30°?", options: ["3", "4", "5", "6"], correct: 2, category: " Trigonometria" }
   ];
 
   let perguntas = []; 
@@ -438,6 +499,64 @@
     document.getElementById('screen1').classList.remove('active');
     document.getElementById('screen2').classList.add('active');
   }
+  // === Fluxo Aluno/Professor ===
+function mostrarTelaMenu() {
+  trocarTela('menuScreen');
+}
+
+function entrarAluno() {
+  trocarTela('screen2'); // já existente
+}
+
+function entrarProfessor() {
+  trocarTela('senhaScreen');
+}
+
+function validarSenha() {
+  const senha = document.getElementById('senhaProfessor').value;
+  if (senha === "123") { // senha fixa
+    document.getElementById('erroSenha').style.display = "none";
+    trocarTela('anoProfessorScreen');
+  } else {
+    document.getElementById('erroSenha').style.display = "block";
+  }
+}
+
+function mostrarParticipantes() {
+  const anoSel = document.getElementById('anoProfessor').value;
+  if (!anoSel) return alert("Selecione um ano!");
+  
+  // aqui você pode buscar participantes de um backend,
+  // por enquanto simulamos:
+  const participantes = ["Maria", "João", "Ana", "Pedro"];
+  const lista = document.getElementById('listaParticipantes');
+  lista.innerHTML = "";
+  participantes.forEach(nome => {
+    const li = document.createElement("li");
+    li.textContent = nome;
+    li.style.cursor = "pointer";
+    li.onclick = () => mostrarRelatorio(nome);
+    lista.appendChild(li);
+  });
+
+  trocarTela('participantesScreen');
+}
+
+function mostrarRelatorio(nome) {
+  // Aqui você buscaria os dados do servidor
+  document.getElementById('dadosRelatorio').innerHTML = `
+    <h2>${nome}</h2>
+    <p>Acertos: 7</p>
+    <p>Erros: 1</p>
+    <p>Desempenho excelente!</p>
+  `;
+  trocarTela('relatorioScreen');
+}
+
+function voltarParticipantes() {
+  trocarTela('participantesScreen');
+}
+
 
   function iniciarQuiz() {
     nome = document.getElementById('nome').value;
@@ -565,8 +684,10 @@
       if (i === correta) {
         document.getElementById('feedbackMsg').textContent = "Acertou!";
         document.getElementById('imgErro').style.display = 'none';
+        document.getElementById('imgAcerto').style.display = 'block';
       } else {
         document.getElementById('imgErro').style.display = "block"; 
+        document.getElementById('imgAcerto').style.display = 'none';
         document.getElementById('feedbackMsg').textContent = "Essa foi uma boa tentativa! Vamos tentar de novo?";
       }
       trocarTela('feedbackScreen');
@@ -719,6 +840,8 @@ function mostrarRelatorio() {
   function reset() {
     socket.emit("reset");
   }
+  
+  
 </script>
 </body>
-</html>
+</html></html>
