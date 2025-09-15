@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -381,11 +381,35 @@
 
 <div class="screen" id="feedbackScreen">
   <h1 id="feedbackMsg"></h1>
- <img id="imgErro" src="{{ url_for('static', filename='matherro.jpg') }}"  alt="cara vermelha"
-       style="width:50%; height:auto; display:none; margin:0 auto;">
- <img id="imgAcerto" src="{{ url_for('static', filename='mathacerto.jpg') }}"  alt="cara verde"
-       style="width:50%; height:auto; display:none; margin:0 auto;">
-  <button onclick="proximaPergunta()">Próxima</button>
+ <dotlottie-wc id="imgErro"
+    src="{{ url_for('static', filename='matherro.lottie') }}" 
+    background="transparent"
+    speed="1"
+    style="width: 2387px; height: 2307px; position: relative; top: -100px;"
+    loop autoplay
+  ></dotlottie-wc>
+ <dotlottie-wc id="imgAcerto"
+    src="{{ url_for('static', filename='Mathacerto.lottie') }}" 
+    background="transparent"
+    speed="1"
+    style="width: 2387px; height: 2307px; position: relative; top: -100px;"
+    loop autoplay
+  ></dotlottie-wc>
+  <button onclick="proximaPergunta()" style="
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            padding: 10px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+          ">Próxima</button>
 </div>
 
 <div class="screen" id="reportScreen">
@@ -525,33 +549,151 @@ function validarSenha() {
 function mostrarParticipantes() {
   const anoSel = document.getElementById('anoProfessor').value;
   if (!anoSel) return alert("Selecione um ano!");
-  
-  // aqui você pode buscar participantes de um backend,
-  // por enquanto simulamos:
-  const participantes = ["Maria", "João", "Ana", "Pedro"];
-  const lista = document.getElementById('listaParticipantes');
-  lista.innerHTML = "";
-  participantes.forEach(nome => {
-    const li = document.createElement("li");
-    li.textContent = nome;
-    li.style.cursor = "pointer";
-    li.onclick = () => mostrarRelatorio(nome);
-    lista.appendChild(li);
-  });
+
+  // busca no backend os alunos/resultados desse ano
+  fetch(`/resultados/${anoSel}`)
+    .then(res => res.json())
+    .then(dados => {
+      const lista = document.getElementById('listaParticipantes');
+      lista.innerHTML = "";
+
+      // vamos agrupar os resultados por nome de aluno
+      const alunos = {};
+      dados.forEach(([nome, acertos, erros, data]) => {
+        if (!alunos[nome]) alunos[nome] = [];
+        alunos[nome].push({ acertos, erros, data });
+      });
+
+      // cria a lista de alunos
+      Object.keys(alunos).forEach(nome => {
+        const li = document.createElement("li");
+        li.textContent = nome;
+        li.style.cursor = "pointer";
+        li.onclick = () => mostrarRelatorioProfessor(nome, alunos[nome]); 
+        lista.appendChild(li);
+      });
+    });
 
   trocarTela('participantesScreen');
 }
 
-function mostrarRelatorio(nome) {
-  // Aqui você buscaria os dados do servidor
-  document.getElementById('dadosRelatorio').innerHTML = `
-    <h2>${nome}</h2>
-    <p>Acertos: 7</p>
-    <p>Erros: 1</p>
-    <p>Desempenho excelente!</p>
-  `;
-  trocarTela('relatorioScreen');
+
+function mostrarRelatorioProfessor(nome, resultados) {
+  trocarTela('reportScreen');
+ 
+
+  // Calcula acertos e erros totais
+  const acertos = resultados.reduce((sum, r) => sum + r.acertos, 0);
+  const erros = resultados.reduce((sum, r) => sum + (!r.acertou ? 1 : 0), 0);
+
+  // Atualiza resumo
+  document.getElementById('resumo').textContent =
+    `${nome} - Acertos: ${acertos}/${resultados.length}`;
+
+  // Calcula categorias
+  let categorias = {};
+  resultados.forEach(r => {
+    if (!categorias[r.categoria]) {
+      categorias[r.categoria] = { total: 0, acertos: 0, erros: 0 };
+    }
+    categorias[r.categoria].total++;
+    if (r.acertou) categorias[r.categoria].acertos++;
+    else categorias[r.categoria].erros++;
+  });
+
+  // Função para criar painel de acertos/erros
+  function criarPainel(titulo, cor, dados, tipo) {
+    let painel = `<div style="padding:10px;border-radius:20px;width:200px;margin:10px;">
+                    <h3 style="margin:0;background-color:${cor};border-radius:15px;padding:5px;text-align:center;color:white;">${titulo}</h3>`;
+    for (let cat in dados) {
+      let porcento = ((tipo === 'acertos' ? dados[cat].acertos : dados[cat].erros) / dados[cat].total * 100).toFixed(1);
+      painel += `<p>${cat}: ${porcento}%</p>`;
+    }
+    painel += `</div>`;
+    return painel;
+  }
+
+  const painelAcertos = criarPainel('Acertos', '#3498db', categorias, 'acertos');
+  const painelErros = criarPainel('Erros', '#e74c3c', categorias, 'erros');
+
+  // Pior categoria
+  let piorCategoria = null;
+  let maiorErro = 0;
+  for (let cat in categorias) {
+    let porcentoErro = (categorias[cat].erros / categorias[cat].total) * 100;
+    if (porcentoErro > maiorErro) {
+      maiorErro = porcentoErro;
+      piorCategoria = cat;
+    }
+  }
+
+  const painelMelhoria = `<div style="padding:10px;border-radius:20px;width:300px;margin:10px;">
+                            <h3 style="margin:0;background-color:#2ecc71;border-radius:15px;padding:5px;text-align:center;color:white;">Pontos de melhoria:</h3>
+                            <p>O aluno <b>${nome}</b> apresentou mais dificuldades em <b>${piorCategoria}</b>, 
+                            por consequência é indicado prestar apoio e mais atenção em atividades relacionadas a <b>${piorCategoria}</b>.</p>
+                          </div>`;
+
+  // Limpar conteúdo anterior e manter canvas e botão
+  const report = document.getElementById('reportScreen');
+  report.innerHTML = `<h2 id="resumo"></h2>
+                      <div id="containerPrincipal" style="display:flex; justify-content:center; align-items:flex-start; gap:40px; margin-top:20px;"></div>
+                      <canvas id="grafico"></canvas>
+                      <button style="display:none;">Ver Surpresa</button>`;
+
+  document.getElementById('resumo').textContent =
+    `${nome} - Acertos: ${acertos}/${resultados.length}`;
+
+  // Criar container principal e colunas
+  const containerPrincipal = document.getElementById('containerPrincipal');
+
+  // Esquerda: Acertos e Erros empilhados
+  const containerEsquerda = document.createElement('div');
+  containerEsquerda.style.display = 'flex';
+  containerEsquerda.style.flexDirection = 'column';
+  containerEsquerda.style.gap = '20px';
+  containerEsquerda.innerHTML = painelAcertos + painelErros;
+
+  // Centro: gráfico
+  const containerCentral = document.createElement('div');
+  containerCentral.style.display = 'flex';
+  containerCentral.style.justifyContent = 'center';
+  containerCentral.style.alignItems = 'center';
+  containerCentral.style.flexDirection = 'column';
+  containerCentral.appendChild(document.getElementById('grafico'));
+
+  // Direita: Pontos de melhoria
+  const containerDireita = document.createElement('div');
+  containerDireita.style.display = 'flex';
+  containerDireita.style.flexDirection = 'column';
+  containerDireita.style.gap = '20px';
+  containerDireita.innerHTML = painelMelhoria;
+
+  // Adicionar colunas ao container principal
+  containerPrincipal.appendChild(containerEsquerda);
+  containerPrincipal.appendChild(containerCentral);
+  containerPrincipal.appendChild(containerDireita);
+
+  // Criar gráfico
+  const ctx = document.getElementById('grafico').getContext('2d');
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['Acertos', 'Erros'],
+      datasets: [{
+        data: [acertos, erros],
+        backgroundColor: ['#3498db', '#e74c3c']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
 }
+
 
 function voltarParticipantes() {
   trocarTela('participantesScreen');
@@ -700,13 +842,16 @@ function voltarParticipantes() {
       mostrarPergunta();
     } else {
       mostrarRelatorio();
+      
     }
   }
 
 function mostrarRelatorio() {
   trocarTela('reportScreen');
+  
 
   const erros = perguntas.length - acertos;
+  enviarResultado(nome, ano, acertos, erros);
 
   // Atualizar resumo
   document.getElementById('resumo').textContent =
@@ -721,6 +866,7 @@ function mostrarRelatorio() {
     categorias[r.categoria].total++;
     if (r.acertou) categorias[r.categoria].acertos++;
     else categorias[r.categoria].erros++;
+    
   });
 
   // Função para criar painel
@@ -828,6 +974,19 @@ function mostrarRelatorio() {
     document.getElementById('userName').textContent = nome;
   }
 
+  function enviarResultado(nome, ano, acertos, erros) {
+  fetch("/salvar_resultado", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    nome: nomeJogador,
+    ano: anoJogador,
+    resultados: resultados  
+  })
+});
+
+}
+
   const socket = io('http://localhost:5001');
   console.log("O script está rodando!");
 
@@ -844,4 +1003,4 @@ function mostrarRelatorio() {
   
 </script>
 </body>
-</html></html>
+</html>
