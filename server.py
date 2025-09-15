@@ -1,10 +1,11 @@
 import eventlet
 eventlet.monkey_patch()
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
 import serial
 import threading
 import time
+import sqlite3
 
 
 
@@ -75,10 +76,68 @@ def handle_erro():
     if arduino:
         arduino.write(b"ERROU\n")
 
+def conectar():
+    conn = sqlite3.connect("quiz.db")
+    conn.row_factory = sqlite3.Row  # permite acessar por nome de coluna
+    return conn
+
+@app.route("/salvar_resultado", methods=["POST"])
+def salvar_resultado():
+    dados = request.json
+    nome = dados["nome"]
+    ano = dados["ano"]
+    resultados = dados["resultados"]  
+
+    conn = conectar()
+    c = conn.cursor()
+
+    # Verifica se aluno já existe
+    c.execute("SELECT id FROM alunos WHERE nome=? AND ano=?", (nome, ano))
+    aluno = c.fetchone()
+    if aluno:
+        aluno_id = aluno["id"]
+    else:
+        c.execute("INSERT INTO alunos (nome, ano) VALUES (?, ?)", (nome, ano))
+        aluno_id = c.lastrowid
+
+    # Salva resultado
+    for resultado in resultados:
+        c.execute(
+            "INSERT INTO resultados (aluno_id, categoria, acertou, data) VALUES (?, ?, ?, datetime('now'))",
+            (aluno_id, resultado["categoria"], int(resultado["acertou"]))
+        )
+
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "ok"})
+
+@app.route("/resultados/<ano>")
+def resultados_ano(ano):
+    conn = conectar()
+    c = conn.cursor()
+
+    c.execute("""
+    SELECT alunos.nome, resultados.acertos, resultados.erros, resultados.data
+    FROM resultados
+    JOIN alunos ON alunos.id = resultados.aluno_id
+    WHERE alunos.ano = ?
+    ORDER BY resultados.rowid DESC
+    """, (ano,))
+
+
+    rows = c.fetchall()
+    conn.close()
+
+    # transforma em lista de listas para o JS
+    return jsonify([[r["nome"], r["acertos"], r["erros"], r["data"]] for r in rows])
+
 
 # ===== INICIA O SERVIDOR =====
 if __name__ == '__main__':
     socketio.start_background_task(ler_serial)
     socketio.run(app, host='0.0.0.0', port=5001)
     
+
 
