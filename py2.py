@@ -8,14 +8,21 @@ import time
 import sqlite3
 import datetime
 
-
+# ===============================
+# 🔹 CONFIGURAÇÃO DA PORTA SERIAL
+# ===============================
 PORTA_SERIAL = 'COM4'
 BAUD = 9600
 
+# ===============================
+# 🔹 INICIALIZAÇÃO DO FLASK
+# ===============================
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-
+# ===============================
+# 🔹 CONECTA AO ARDUINO
+# ===============================
 try:
     arduino = serial.Serial(PORTA_SERIAL, BAUD, timeout=1)
     print(f"Conectado ao Arduino na porta {PORTA_SERIAL}")
@@ -24,7 +31,9 @@ except:
     arduino = None
     print("⚠ Não foi possível conectar ao Arduino. Verifique a porta.")
 
-
+# ===============================
+# 🔹 BANCO DE DADOS
+# ===============================
 def criar_banco():
     conn = sqlite3.connect("quiz.db")
     c = conn.cursor()
@@ -55,17 +64,23 @@ def criar_banco():
 
 criar_banco()
 
-
+# ===============================
+# 🔹 VARIÁVEIS DO JOGO
+# ===============================
 acertos = 0
 nome_atual = None
 ano_atual = None
 
-
+# ===============================
+# 🔹 ROTA PRINCIPAL
+# ===============================
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
+# ===============================
+# 🔹 THREAD PARA LER O ARDUINO
+# ===============================
 def ler_serial():
     if not arduino:
         print("Arduino não conectado. Apenas o site funcionará.")
@@ -81,6 +96,9 @@ def ler_serial():
             print(f"Erro lendo serial: {e}")
             break
 
+# ===============================
+# 🔹 FUNÇÃO PARA SALVAR RESULTADOS
+# ===============================
 def salvar_resultado(categoria, acertou):
     global nome_atual, ano_atual
     if not nome_atual or not ano_atual:
@@ -110,18 +128,10 @@ def salvar_resultado(categoria, acertou):
     conn.commit()
     conn.close()
     print(f"💾 Resultado salvo no banco para {nome_atual} - {categoria}: {'Acertou' if acertou else 'Errou'}")
-    
-def salvar_resultados(jogador_id, resultados):
-    conn = sqlite3.connect("quiz.db")
-    c = conn.cursor()
-    data = datetime.datetime.now().isoformat()
-    for r in resultados:
-        c.execute("INSERT INTO resultados (jogador_id, categoria, acertou, data) VALUES (?, ?, ?, ?)",
-                  (jogador_id, r['categoria'], int(r['acertou']), data))
-    conn.commit()
-    conn.close()
 
-
+# ===============================
+# 🔹 EVENTOS SOCKET.IO
+# ===============================
 @socketio.on('novo_jogador')
 def handle_novo_jogador(data):
     global nome_atual, ano_atual, acertos
@@ -174,46 +184,55 @@ def handle_reset():
     ano_atual = None
     print("🔄 Jogo reiniciado! Acertos zerados.")
 
-@app.route('/jogadores/<ano>')
-def get_jogadores(ano):
+@socketio.on('pegar_jogadores')
+def handle_pegar_jogadores():
     conn = sqlite3.connect("quiz.db")
     c = conn.cursor()
-    c.execute("SELECT nome, ano FROM jogadores WHERE ano=?", (ano,))
-    jogadores = [{"nome": row[0], "ano": row[1]} for row in c.fetchall()]
+    c.execute("SELECT id, nome, ano FROM jogadores")
+    jogadores = [{"id": row[0], "nome": row[1], "ano": row[2]} for row in c.fetchall()]
     conn.close()
-    return {"jogadores": jogadores}
-
-
-@app.route('/relatorio/<nome>')
-def relatorio(nome):
+    socketio.emit('lista_jogadores', jogadores)
+@socketio.on('pegar_relatorio')
+def handle_pegar_relatorio(data):
+    jogador_id = data['jogador_id']
     conn = sqlite3.connect("quiz.db")
     c = conn.cursor()
-
-    # Pega o ID do jogador
-    c.execute("SELECT id FROM jogadores WHERE nome=?", (nome,))
+    # pegar nome e ano do jogador
+    c.execute("SELECT nome, ano FROM jogadores WHERE id=?", (jogador_id,))
     jogador = c.fetchone()
-
     if not jogador:
-        conn.close()
-        return {"resultados": []}  # jogador não encontrado
+        socketio.emit('relatorio_jogador', {"html": "<p>Aluno não encontrado</p>"})
+        return
+    nome, ano = jogador
 
-    jogador_id = jogador[0]
-
-    # Busca resultados
-    c.execute("""
-        SELECT categoria, acertou, data 
-        FROM resultados 
-        WHERE jogador_id=? 
-        ORDER BY data ASC
-    """, (jogador_id,))
-
-    resultados = [{"categoria": row[0], "acertou": row[1], "data": row[2]} for row in c.fetchall()]
+    # pegar resultados
+    c.execute("SELECT categoria, acertou FROM resultados WHERE jogador_id=?", (jogador_id,))
+    resultados = c.fetchall()
     conn.close()
-    return {"resultados": resultados}
+
+    # gerar HTML similar ao reportScreen
+    acertos = sum(r[1] for r in resultados)
+    erros = len(resultados) - acertos
+
+    categorias = {}
+    for cat, acertou in resultados:
+        if cat not in categorias:
+            categorias[cat] = {"acertos":0, "erros":0, "total":0}
+        categorias[cat]["total"] += 1
+        if acertou: categorias[cat]["acertos"] += 1
+        else: categorias[cat]["erros"] += 1
+
+    html = f"<h2>{nome} ({ano}) - Acertos: {acertos}/{len(resultados)}</h2>"
+    for cat, val in categorias.items():
+        html += f"<p>{cat}: {val['acertos']} acertos, {val['erros']} erros</p>"
+    html += f"<p>Total de erros: {erros}</p>"
+
+    socketio.emit('relatorio_jogador', {"html": html})
 
 
-
-
+# ===============================
+# 🔹 INICIA O SERVIDOR
+# ===============================
 if __name__ == '__main__':
     socketio.start_background_task(ler_serial)
     socketio.run(app, host='0.0.0.0', port=5001)
