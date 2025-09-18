@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -257,231 +257,52 @@
     loop autoplay
   ></dotlottie-wc>
   </div>
-
- <div class="screen" id="roleSelectionScreen" style="display:none; text-align:center;">
-  <h2>Escolha seu perfil</h2>
-  <button id="alunoBtn">Aluno</button>
-  <button id="professorBtn">Professor</button>
+<!-- Tela de escolha Aluno ou Professor -->
+<div class="screen" id="screenEscolha">
+  <h1>Quem está jogando?</h1>
+  <button onclick="mostrarTelaAluno()">Sou Aluno</button>
+  <button onclick="trocarTela('screenProfessor')">Sou Professor</button>
 </div>
 
-<div class="screen" id="alunoScreen" style="display:none;">
-</div>
-
-
-<div id="senhaContainer" style="display:none; text-align:center;">
-  <h2>Digite a senha do professor</h2>
-  <input type="password" id="senhaInput" placeholder="Senha">
-  <button id="continuarBtn">Continuar</button>
-</div>
-
-<!-- Tela de seleção de anos para professor -->
-<div id="professorAnoScreen" style="display:none; text-align:center;">
-  <h2>Escolha o ano escolar</h2>
-  <select id="professorAnoSelect">
-    <option value="">Escolha o ano</option>
-    <option value="3º ano">3º ano</option>
-    <option value="4º ano">4º ano</option>
-    <option value="5º ano">5º ano</option>
-    <option value="6º ano">6º ano</option>
-    <option value="2º ano">2º ano técnico</option>
-  </select>
-  <button id="professorContinuarBtn">Continuar</button>
-</div>
-
-<div class="screen" id="paginaParticipanteScreen" style="display:none; text-align:center;">
-  <h2>Participante: <span id="nomeParticipante"></span></h2>
-  <div id="containerParticipante" style="display:flex; justify-content:center; gap:40px; margin-top:20px;">
-    <div id="painelAcertosErros"></div>
-    <canvas id="graficoParticipante" style="width:300px; height:300px;"></canvas>
-    <div id="painelMelhoria"></div>
-  </div>
-  <button onclick="voltarProfessor()">Voltar</button>
+  <!-- Tela inicial do professor -->
+<div class="screen" id="screenProfessor">
+  <h1>Área do Orientador</h1>
+  <button onclick="mostrarTelaSenha()">Entrar como Orientador</button>
+  <button onclick="trocarTela('screen1')">Voltar</button>
 </div>
 
 
-<div class="screen" id="professorJogadoresScreen" style="display:none; text-align:center;">
-  <h2>Jogadores do ano selecionado</h2>
-  <ul id="listaJogadores"></ul>
-  <button id="voltarBtn">Voltar</button>
-</div>
+ <script>
+  const tela1 = document.getElementById("screen1");
 
-
-<script>
-function carregarJogadores(jogadores) {
-  const lista = document.getElementById("listaJogadores");
-  lista.innerHTML = ""; // limpa a lista antes
-
-  jogadores.forEach(aluno => {
-    const li = document.createElement('li');
-    li.textContent = aluno.nome;
-    li.style.cursor = "pointer";
-    li.style.padding = "5px";
-    li.style.listStyle = "none";
-    li.style.border = "1px solid #ccc";
-    li.style.margin = "5px";
-    li.style.borderRadius = "5px";
-
-    li.addEventListener("click", () => {
-      document.getElementById("nomeParticipante").textContent = aluno.nome;
-      trocarTela("paginaParticipanteScreen");
-
-      // 🔹 aqui busca o relatório desse aluno
-      fetch(`/relatorio/${encodeURIComponent(aluno.nome)}`)
-       .then(res => res.json())
-        .then(data => {
-        if (data.resultados && data.resultados.length > 0) {
-       mostrarRelatorio(aluno.nome, aluno.ano, data.resultados);
-       } else {
-       document.getElementById("graficoparticipante").innerHTML += "<p>Sem resultados</p>";
-      }
-     });
-
-    });
-
-    lista.appendChild(li);
+  // Clique no rostinho inicial
+  tela1.addEventListener("click", () => {
+    trocarTela('screenEscolha'); // vai para a tela de escolha entre Aluno e Professor
   });
-}
 
-
-document.getElementById("professorContinuarBtn").addEventListener("click", () => {
-  const ano = document.getElementById("professorAnoSelect").value;
-  if (!ano) return alert("Selecione um ano!");
-
-    fetch(`/jogadores/${encodeURIComponent(ano)}`)
-    .then(res => res.json())
-    .then(data => {
-    carregarJogadores(data.jogadores); // popula a lista corretamente
-    trocarTela("professorJogadoresScreen"); // mostra a tela
-    });
-
-});
-
-</script>
-
-
-<!-- Tela final do professor -->
-<div class="screen" id="professorScreen" style="display:none;">
-  <!-- conteúdo do professor -->
-</div>
-
-<div id="relatorioContainer"></div>
-<script>
-const screen1 = document.getElementById('screen1');
-const roleScreen = document.getElementById('roleSelectionScreen');
-const alunoScreen = document.getElementById('alunoScreen');
-const professorScreen = document.getElementById('professorScreen');
-const senhaContainer = document.getElementById('senhaContainer');
-const continuarBtn = document.getElementById('continuarBtn');
-const senhaInput = document.getElementById('senhaInput');
-const professorAnoScreen = document.getElementById('professorAnoScreen');
-const professorAnoSelect = document.getElementById('professorAnoSelect');
-const professorContinuarBtn = document.getElementById('professorContinuarBtn');
-const professorJogadoresScreen = document.getElementById('professorJogadoresScreen');
-const listaJogadores = document.getElementById('listaJogadores');
-const voltarBtn = document.getElementById('voltarBtn');
-
-const alunoBtn = document.getElementById('alunoBtn');
-const professorBtn = document.getElementById('professorBtn');
-
-// Ao clicar no rostinho, mostra a tela de escolha
-const rostinho = document.querySelector('dotlottie-wc');
-rostinho.addEventListener('click', () => {
-  screen1.style.display = 'none';
-  roleScreen.style.display = 'block';
-});
-
-// Escolha do aluno
-alunoBtn.addEventListener('click', () => {
-  roleScreen.style.display = 'none';
-  alunoScreen.style.display = 'block';
-  mostrarTela2();
-});
-
-// Escolha do professor
-professorBtn.addEventListener('click', () => {
-  roleScreen.style.display = 'none';
-  mostrarTelaSenha();
-});
-
-// Função para mostrar a tela de senha
-function mostrarTelaSenha() {
-  senhaContainer.style.display = 'block';
-
-  continuarBtn.addEventListener('click', () => {
-    if (senhaInput.value === '123') {
-      senhaContainer.style.display = 'none';
-      professorAnoScreen.style.display = 'block'; // mostra a tela de anos
-      senhaInput.value = '';
-    } else {
-      alert('Senha incorreta!');
-    }
-  }, { once: true }); // adiciona o listener apenas uma vez
-}
-
-// Seleção do ano do professor
-professorContinuarBtn.addEventListener('click', async () => {
-  const anoSelecionado = professorAnoSelect.value;
-  if (!anoSelecionado) {
-    alert("Escolha um ano escolar!");
-    return;
+  // Função única para trocar telas
+  function trocarTela(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
   }
 
-  professorAnoScreen.style.display = 'none';
-
-  // Busca os jogadores via fetch
-  try {
-    const res = await fetch(`/jogadores/${encodeURIComponent(anoSelecionado)}`);
-    const data = await res.json();
-    const jogadores = data.jogadores;
-
-   // Limpa lista anterior
-listaJogadores.innerHTML = '';
-
-if (jogadores.length === 0) {
-  listaJogadores.innerHTML = '<li>Nenhum jogador encontrado para este ano</li>';
-} else {
-  jogadores.forEach(aluno => {
-    const li = document.createElement('li');
-    li.textContent = aluno.nome;
-    li.style.cursor = "pointer";
-    li.style.padding = "5px";
-    li.style.listStyle = "none";
-    li.style.border = "1px solid #ccc";
-    li.style.margin = "5px";
-    li.style.borderRadius = "5px";
-
-    // Listener de clique
-    li.addEventListener("click", () => {
-      document.getElementById("nomeParticipante").textContent = aluno.nome;
-      trocarTela("paginaParticipanteScreen");
-    });
-
-    listaJogadores.appendChild(li);
-  });
-}
-
-
-    // Mostra a tela de jogadores
-    professorJogadoresScreen.style.display = 'block';
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao buscar jogadores.");
+  // Função para mostrar a tela do aluno
+  function mostrarTelaAluno() {
+    trocarTela('screen2'); // vai diretamente para a tela 2 (nome e ano)
   }
-});
 
-// Botão de voltar da tela de jogadores
-voltarBtn.addEventListener('click', () => {
-  professorJogadoresScreen.style.display = 'none';
-  professorScreen.style.display = 'block';
-});
-
-
-
-
+  // Função para mostrar a tela de senha do professor
+  function mostrarTelaSenha() {
+    trocarTela('screenSenha');
+  }
 </script>
 
+  <div class="screen" id="screenRelatorioProfessor">
+  <h1>Relatório do Aluno</h1>
+  <div id="conteudoRelatorio"></div>
+  <button onclick="trocarTela('screenListaAlunos')">Voltar</button>
+</div>
 
-  
 <!-- Tela 2: Nome e Ano -->
 <div class="screen" id="screen2">
   <h1>Digite seu nome e selecione o ano escolar</h1>
@@ -551,6 +372,7 @@ voltarBtn.addEventListener('click', () => {
 
 
 
+
 <div class="screen" id="feedbackScreen">
   <h1 id="feedbackMsg"></h1>
    <dotlottie-wc id="imgErro"
@@ -575,6 +397,23 @@ feedbackScreen.addEventListener('click', () => {
   proximaPergunta();
 });
 </script>
+
+
+<!-- Tela de senha -->
+<div class="screen" id="screenSenha">
+  <h1>Digite a senha</h1>
+  <input type="password" id="senhaProfessor" placeholder="Senha">
+  <button onclick="entrarProfessor()">Entrar</button>
+  <button onclick="trocarTela('screenProfessor')">Voltar</button>
+</div>
+
+<!-- Lista de alunos -->
+<div class="screen" id="screenListaAlunos">
+  <h1>Alunos que já jogaram</h1>
+  <div id="listaAlunos"></div>
+  <button onclick="trocarTela('screenProfessor')">Voltar</button>
+</div>
+
 
 </div>
 <div class="screen" id="reportScreen">
@@ -649,8 +488,6 @@ feedbackScreen.addEventListener('click', () => {
 
   const socket = io('http://localhost:5001');
   console.log("O script está rodando!");
-
-    let jogadorId = null;
   
   // === Teclado Virtual ===
   const input = document.getElementById("nome");
@@ -686,6 +523,28 @@ feedbackScreen.addEventListener('click', () => {
     document.getElementById('screen1').classList.remove('active');
     document.getElementById('screen2').classList.add('active');
   }
+
+  socket.on('lista_jogadores', data => {
+  const lista = document.getElementById('listaAlunos');
+  lista.innerHTML = ""; // limpa
+  if (data.length === 0) {
+    lista.innerHTML = "<p>Nenhum aluno jogou ainda.</p>";
+  } else {
+    data.forEach(aluno => {
+      const btn = document.createElement('button');
+      btn.textContent = `${aluno.nome} (${aluno.ano})`;
+      btn.onclick = () => {
+        socket.emit('pegar_relatorio', { jogador_id: aluno.id });
+      };
+      lista.appendChild(btn);
+    });
+  }
+});
+
+
+
+
+
 
   function iniciarQuiz() {
     nome = document.getElementById('nome').value;
@@ -763,7 +622,23 @@ feedbackScreen.addEventListener('click', () => {
     }
   }, 20);
 }
+socket.on('relatorio_jogador', data => {
+  trocarTela('screenRelatorioProfessor');
+  const conteudo = document.getElementById('conteudoRelatorio');
+  conteudo.innerHTML = data.html; // o HTML do relatório vindo do servidor
+});
 
+
+function entrarProfessor() {
+  const senha = document.getElementById('senhaProfessor').value;
+  // aqui você pode definir uma senha fixa ou consultar do servidor
+  if (senha === "123") {  // Exemplo de senha fixa
+    socket.emit('pegar_jogadores'); // pedindo lista de alunos
+    trocarTela('screenListaAlunos');
+  } else {
+    alert("Senha incorreta!");
+  }
+}
 
   function trocarTela(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -774,6 +649,11 @@ feedbackScreen.addEventListener('click', () => {
     clearInterval(timerInterval);
     verificarResposta(i);
   }
+
+  function mostrarTelaSenha() {
+  trocarTela('screenSenha');
+}
+
 
   function verificarResposta(i) {
     const correta = perguntas[indice].correct;
@@ -840,15 +720,14 @@ feedbackScreen.addEventListener('click', () => {
     }
   }
 
-function mostrarRelatorio(nome, ano, resultados) {
+function mostrarRelatorio() {
   trocarTela('reportScreen');
 
-  const acertos = resultados.filter(r => r.acertou === 1).length;
-  const erros = resultados.length - acertos;
+  const erros = perguntas.length - acertos;
 
   // Atualizar resumo
   document.getElementById('resumo').textContent =
-    `${nome} (${ano}) - Acertos: ${acertos}/${resultados.length}`;
+    `${nome} (${ano}) - Acertos: ${acertos}/${perguntas.length}`;
 
   // Calcular categorias
   let categorias = {};
@@ -857,7 +736,7 @@ function mostrarRelatorio(nome, ano, resultados) {
       categorias[r.categoria] = { total: 0, acertos: 0, erros: 0 };
     }
     categorias[r.categoria].total++;
-    if (r.acertou === 1) categorias[r.categoria].acertos++;
+    if (r.acertou) categorias[r.categoria].acertos++;
     else categorias[r.categoria].erros++;
   });
 
@@ -965,16 +844,11 @@ function mostrarRelatorio(nome, ano, resultados) {
     trocarTela('rewardScreen');
     document.getElementById('userName').textContent = nome;
   }
-  function trocarTela(idTela) {
-  document.querySelectorAll(".screen").forEach(div => {
-    div.style.display = "none";
-  });
-  document.getElementById(idTela).style.display = "block";
-}
 
-function voltarProfessor() {
-  trocarTela('professorJogadoresScreen');
-}
+  let jogadorId = null;
+
+// Enviar novo jogador
+
 
 // Receber ID salvo do servidor
 socket.on("jogador_salvo", (data) => {
@@ -989,9 +863,16 @@ socket.on("jogador_salvo", (data) => {
     responder(botao);
   });
 
+ 
+
+
+
   function reset() {
     socket.emit("reset");
   }
 </script>
+</body>
+</html>
+
 </body>
 </html>
