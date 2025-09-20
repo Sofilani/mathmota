@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatório MathMota</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f0f0; text-align: center; }
+    h1 { color: #333; }
+    #listaParticipantesAno button {
+      display: block;
+      margin: 10px auto;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #3498db;
+      color: #fff;
+      border: none;
+      transition: background 0.3s;
+    }
+    #listaParticipantesAno button:hover {
+      background: #2c80b4;
+    }
+  </style>
+</head>
+<body>
+  <h1>Relatório de Jogadores</h1>
+  <div id="listaParticipantesAno">
+    <!-- Botões serão inseridos aqui via JS -->
+  </div>
+
+  <script>
+    const jogadores = {{ jogadores|tojson }};
+  const lista = document.getElementById('listaParticipantesAno');
+  jogadores.forEach(jogador => {
+    const button = document.createElement('button');
+    button.textContent = jogador.nome;
+    button.onclick = () => {
+      window.location.href = `/relatorio/${jogador.id}`;
+    };
+    lista.appendChild(button);
+  });
+  </script>
+</body>
+</html>
+
