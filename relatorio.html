@@ -1,47 +1,132 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Relatório MathMota</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: Arial, sans-serif; background: #f0f0f0; text-align: center; }
-    h1 { color: #333; }
-    #listaParticipantesAno button {
-      display: block;
-      margin: 10px auto;
-      padding: 15px 30px;
-      font-size: 1.2em;
-      border-radius: 10px;
-      cursor: pointer;
-      background: #3498db;
-      color: #fff;
-      border: none;
-      transition: background 0.3s;
-    }
-    #listaParticipantesAno button:hover {
-      background: #2c80b4;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Relatório - MathMota</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: #fff;
+  }
+  h2 { margin-bottom: 20px; }
+  #containerPrincipal {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .painel {
+    padding: 10px;
+    border-radius: 20px;
+    width: 250px;
+    margin: 10px;
+  }
+  .painel h3 {
+    margin: 0;
+    border-radius: 15px;
+    padding: 5px;
+    text-align: center;
+    color: white;
+  }
+  #grafico {
+    max-width: 400px;
+    max-height: 400px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px;
+  }
+</style>
 </head>
 <body>
-  <h1>Relatório de Jogadores</h1>
-  <div id="listaParticipantesAno">
-    <!-- Botões serão inseridos aqui via JS -->
-  </div>
 
-  <script>
-    const jogadores = {{ jogadores|tojson }};
-  const lista = document.getElementById('listaParticipantesAno');
-  jogadores.forEach(jogador => {
-    const button = document.createElement('button');
-    button.textContent = jogador.nome;
-    button.onclick = () => {
-      window.location.href = `/relatorio/${jogador.id}`;
-    };
-    lista.appendChild(button);
+<h2 id="resumo"></h2>
+<div id="containerPrincipal">
+  <div id="painelAcertos" class="painel"></div>
+  <div>
+    <canvas id="grafico"></canvas>
+  </div>
+  <div id="painelMelhoria" class="painel"></div>
+</div>
+
+<script>
+  // === Dados enviados pelo Flask ===
+  const nome = "{{ nome }}";
+  const resultados = {{ resultados|tojson }};
+
+  const total = resultados.length;
+  const acertos = resultados.filter(r => r[1]).length;
+  const erros = total - acertos;
+
+  // Resumo
+  document.getElementById('resumo').textContent =
+    `${nome} - Acertos: ${acertos} | Erros: ${erros} | Total: ${total}`;
+
+  // Categorias
+  const categorias = {};
+  resultados.forEach(r => {
+    const categoria = r[0] || "Não definida";
+    const acertou = r[1];
+    if (!categorias[categoria]) {
+      categorias[categoria] = { total: 0, acertos: 0, erros: 0 };
+    }
+    categorias[categoria].total++;
+    if (acertou) categorias[categoria].acertos++;
+    else categorias[categoria].erros++;
   });
-  </script>
+
+  // Função para criar painel
+  function criarPainel(titulo, cor, dados, tipo) {
+    let html = `<h3 style="background-color:${cor}">${titulo}</h3>`;
+    for (let cat in dados) {
+      const ac = dados[cat].acertos;
+      const er = dados[cat].erros;
+      html += `<p>${cat}: ${ac} acertos / ${er} erros</p>`;
+    }
+    return html;
+  }
+
+  document.getElementById('painelAcertos').innerHTML = criarPainel('Acertos/Erros', '#3498db', categorias, 'acertos');
+
+  // Pior categoria
+  let piorCategoria = null;
+  let maiorErro = 0;
+  for (let cat in categorias) {
+    const pctErro = (categorias[cat].erros / categorias[cat].total) * 100;
+    if (pctErro > maiorErro) {
+      maiorErro = pctErro;
+      piorCategoria = cat;
+    }
+  }
+
+  const painelMelhoria = `<h3 style="background-color:#2ecc71">Pontos de melhoria</h3>
+    <p>O aluno <b>${nome}</b> apresentou mais dificuldades em <b>${piorCategoria}</b>. É indicado prestar mais atenção em atividades relacionadas a <b>${piorCategoria}</b>.</p>`;
+  document.getElementById('painelMelhoria').innerHTML = painelMelhoria;
+
+  // Gráfico de pizza
+  const ctx = document.getElementById('grafico').getContext('2d');
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['Acertos', 'Erros'],
+      datasets: [{
+        data: [acertos, erros],
+        backgroundColor: ['#3498db', '#e74c3c']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+</script>
+
 </body>
 </html>
-
