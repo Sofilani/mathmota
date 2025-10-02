@@ -1015,8 +1015,33 @@ function mostrarTela2() {
   }, 20);
 }
 
+function trocarTela(id) {
+  // Esconde todas as telas
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = "none";
+  });
+
+  // Mostra apenas a escolhida
+  const tela = document.getElementById(id);
+  if (tela) {
+    tela.classList.add('active');
+    tela.style.display = "flex"; // ou "block", depende do seu layout
+  }
+
+  // Sempre esconder os teclados ao trocar de tela
+  document.getElementById("keyboard").style.display = "none";
+  document.getElementById("pinKeyboard").style.display = "none";
+
+  // 🔹 Se voltou para o menu ou tela inicial, limpar a senha do professor
+  if (id === "menuScreen" || id === "screen1") {
+    const senhaInput = document.getElementById("senhaProfessor");
+    if (senhaInput) senhaInput.value = "";
+  }
+}
 
 
+/*
  function trocarTela(id) {
   // Esconde todas as telas
   document.querySelectorAll('.screen').forEach(s => {
@@ -1035,7 +1060,7 @@ function mostrarTela2() {
   document.getElementById("keyboard").style.display = "none";
   document.getElementById("pinKeyboard").style.display = "none";
 }
-
+*/
 
   function responder(i) {
     clearInterval(timerInterval);
@@ -1291,12 +1316,28 @@ botao.style.display = (acertosCount >= 6 && acertosCount <= 8) ? 'inline-block' 
 
   let jogadorId = null;
 
-// Enviar novo jogador
 
-  function reiniciarJogo() {
-    socket.emit("reset"); // já que você usa reset no início
-    trocarTela("screen1"); // volta para o rostinho inicial
-  }
+ function reiniciarJogo() {
+  // Zera ID do jogador
+  window.jogadorId = null;
+
+  // Limpa nome e ano
+  document.getElementById("nome").value = "";
+  document.getElementById("ano").value = "";
+
+  // Zera progresso do quiz
+  if (window.resultados) window.resultados = [];
+  if (window.perguntaAtual) window.perguntaAtual = 0;
+  if (window.pontos) window.pontos = 0;
+
+  // Esconde gráficos, feedback, etc
+  const grafico = document.getElementById("grafico");
+  if (grafico) grafico.getContext("2d").clearRect(0, 0, grafico.width, grafico.height);
+
+  // Volta para o menu inicial
+  trocarTela("menuScreen");
+}
+
 
 
 // Receber ID salvo do servidor
