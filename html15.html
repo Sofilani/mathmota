@@ -1505,7 +1505,10 @@ botao.style.display = (acertosCount >= 6 && acertosCount <= 8) ? 'inline-block' 
   trocarTela("menuScreen");
 }
 
-
+function reset() { 
+  resultados = [];
+   indice = 0;
+ }
 
 // Receber ID salvo do servidor
 socket.on("jogador_salvo", (data) => {
