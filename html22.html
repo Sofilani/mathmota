@@ -1505,6 +1505,18 @@ function desbloquearOpcoes() {
     let jogadorId = null;
 
     function reiniciarJogo() {
+      document.querySelectorAll('.options button')
+      .forEach(btn => {
+        btn.classList.remove('bloqueado');
+        btn.disabled = false;          // libera o botão
+        btn.style.pointerEvents = "auto"; // permite clique de novo
+      });
+
+       const selects = [document.getElementById("nome"), document.getElementById("ano")];
+    selects.forEach(el => {
+        el.disabled = false;
+        el.style.pointerEvents = "auto";
+    });
       socket.emit('reset');
       // Zera ID do jogador
       window.jogadorId = null;
