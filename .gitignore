@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Banco de dados local
+*.db
+*.sqlite
+*.sqlite3
+
+# Configurações e credenciais
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Arquivos temporários
+*.log
+*.tmp
